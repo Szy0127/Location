@@ -54,6 +54,59 @@ public class MainActivity extends Activity {
 
 
     }
+
+
+    private static final double pi = Math.PI;
+    private static final double a = 6378245.0;  // 长半轴
+    private static final double ee = 0.00669342162296594323;  // 偏心率平方
+
+    public static double transformLat(double lng, double lat) {
+        double ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat +
+                0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng));
+        ret += (20.0 * Math.sin(6.0 * lng * pi) + 20.0 *
+                Math.sin(2.0 * lng * pi)) * 2.0 / 3.0;
+        ret += (20.0 * Math.sin(lat * pi) + 40.0 *
+                Math.sin(lat / 3.0 * pi)) * 2.0 / 3.0;
+        ret += (160.0 * Math.sin(lat / 12.0 * pi) + 320 *
+                Math.sin(lat * pi / 30.0)) * 2.0 / 3.0;
+        return ret;
+    }
+    private static double transformLng(double lng, double lat) {
+        // Replace with your implementation for _transformlng
+        return 300.0 + lng + 2.0 * lat + 0.1 * lng * lng +
+                0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng))
+                + (20.0 * Math.sin(6.0 * lng * pi) + 20.0 * Math.sin(2.0 * lng * pi)) * 2.0 / 3.0
+                + (20.0 * Math.sin(lng * pi) + 40.0 * Math.sin(lng / 3.0 * pi)) * 2.0 / 3.0
+                + (150.0 * Math.sin(lng / 12.0 * pi) + 300.0 * Math.sin(lng / 30.0 * pi)) * 2.0 / 3.0;
+    }
+
+    public static boolean outOfChina(double lng, double lat) {
+
+        return !(lng > 73.66 && lng < 135.05 && lat > 3.86 && lat < 53.55);
+    }
+
+    public static double[] wgs84ToGcj02(double lng, double lat) {
+        if (outOfChina(lng, lat)) {
+            return new double[]{lng, lat};
+        }
+
+        double dlat = transformLat(lng - 105.0, lat - 35.0);
+        double dlng = transformLng(lng - 105.0, lat - 35.0);
+
+        double radlat = lat / 180.0 * pi;
+        double magic = Math.sin(radlat);
+        magic = 1 - ee * magic * magic;
+        double sqrtmagic = Math.sqrt(magic);
+
+        dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * pi);
+        dlng = (dlng * 180.0) / (a / sqrtmagic * Math.cos(radlat) * pi);
+
+        double mglat = lat + dlat;
+        double mglng = lng + dlng;
+
+        return new double[]{mglng, mglat};
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,6 +203,9 @@ protected void onStart() {
                 double accuracy = location.getAccuracy();
                 text.setText("经度:"+longitude+"纬度:"+latitude+"\n海拔:"+altitude+"速度："+speed+"精度:"+accuracy);
                 if(locationChangedListener!=null){
+                    double[] ret = wgs84ToGcj02(longitude,latitude);
+                    location.setLatitude(ret[1]);
+                    location.setLongitude(ret[0]);
                     locationChangedListener.onLocationChanged(location);
 //                    System.out.println(1);
                 }else{
