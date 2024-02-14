@@ -28,6 +28,10 @@ import com.tencent.tencentmap.mapsdk.maps.model.MyLocationStyle;
 
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 
 public class MainActivity extends Activity {
     private LocationManager mLocationMgr;
@@ -201,7 +205,13 @@ protected void onStart() {
                 double altitude = location.getAltitude();
                 double speed = location.getSpeed();
                 double accuracy = location.getAccuracy();
-                text.setText("经度:"+longitude+"纬度:"+latitude+"\n海拔:"+altitude+"速度："+speed+"精度:"+accuracy);
+                Date currentDate = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                String formattedDate = sdf.format(currentDate);
+                String desc = String.format("更新时间:%s\n经度:%f 纬度:%f\n海拔:%f 速度:%.5fm/s 精度:%f",
+                formattedDate,longitude,latitude,altitude,speed,accuracy);
+                text.setText(desc);
+//                text.setText("更新时间:"+formattedDate+"\n经度:"+longitude+"纬度:"+latitude+"\n海拔:"+altitude+"速度："+speed+"m/s 精度:"+accuracy);
                 if(locationChangedListener!=null){
                     double[] ret = wgs84ToGcj02(longitude,latitude);
                     location.setLatitude(ret[1]);

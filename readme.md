@@ -2,8 +2,8 @@
 
 TODO：
 
-- XUI
-- 指南针
+- XUI [Home · xuexiangjys/XUI Wiki (github.com)](https://github.com/xuexiangjys/XUI/wiki)
+- 指南针 [Android项目开发：指南针（两种方法实现）_如何用加速传感器和磁传感器实现指南针-CSDN博客](https://blog.csdn.net/JavaYoung123/article/details/121529779#:~:text=在Android,机方位的app。) [Android获取当前系统日期和时间_android获取系统时间-CSDN博客](https://blog.csdn.net/huangshenshen_/article/details/57161724) 直接获得角度 例如北偏东30度
 - 权限检查
 - 刷新到当前位置
 - 调整坐标整理到单独文件
