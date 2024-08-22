@@ -9,6 +9,10 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -35,11 +39,13 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private LocationManager mLocationMgr;
+    private SensorManager mSensorMgr;
     private TextView text;
     private LinearLayout layout;
     private MapView mapView;
     private LocationSource.OnLocationChangedListener locationChangedListener;
     private MyLocationSource myLocationSource;
+    private String info;
 
 
     public class MyLocationSource implements LocationSource {
@@ -111,11 +117,47 @@ public class MainActivity extends Activity {
         return new double[]{mglng, mglat};
     }
 
+
+    public static String angle2string(float angle){
+        String[] type = {
+                "北偏东",
+                "南偏东",
+                "南偏西",
+                "北偏西",
+        };
+        Integer t = (int) angle / 90;
+        String res = type[t];
+        Integer a = (int)angle % 90;
+        if (t == 1 || t == 3){
+            a = 90 - a;
+        }
+        res += a+"°";
+        return res;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mLocationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mSensorMgr = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorMgr.registerListener(
+                new SensorEventListener() {
+                    @Override
+                    public void onSensorChanged(SensorEvent event) {
+                        text = findViewById(R.id.text);
+                        text.setText(info + "角度:" + angle2string(event.values[0]));
+                    }
+
+                    @Override
+                    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                    }
+                }
+
+                , mSensorMgr.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_GAME
+        );
         String ret = initLocation();
         text = findViewById(R.id.text);
         layout = findViewById(R.id.layout);
@@ -208,9 +250,10 @@ protected void onStart() {
                 Date currentDate = new Date();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                 String formattedDate = sdf.format(currentDate);
-                String desc = String.format("更新时间:%s\n经度:%f 纬度:%f\n海拔:%f 速度:%.5fm/s 精度:%f",
+                String desc = String.format("更新时间:%s\n经度:%f 纬度:%f\n海拔:%f 速度:%.5fm/s 精度:%f\n",
                 formattedDate,longitude,latitude,altitude,speed,accuracy);
-                text.setText(desc);
+                info = desc;
+                text.setText(info);
 //                text.setText("更新时间:"+formattedDate+"\n经度:"+longitude+"纬度:"+latitude+"\n海拔:"+altitude+"速度："+speed+"m/s 精度:"+accuracy);
                 if(locationChangedListener!=null){
                     double[] ret = wgs84ToGcj02(longitude,latitude);
